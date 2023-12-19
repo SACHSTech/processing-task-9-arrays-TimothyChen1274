@@ -2,15 +2,15 @@ import processing.core.PApplet;
 
 public class Sketch extends PApplet {
 	
-	
   /**
    * @author T. Chen
    * A program that creates a snowfall minigame with keyboard and mouse controls using arrays.
    */
-  float[] circleX = new float[25];
-  float[] circleY = new float[25];
-  float[] snowSpeed = new float[1];
-  boolean[] blnHideBall;
+
+  float[] circleX = new float[20];
+  float[] circleY = new float[20];
+  int snowSpeed = 1;
+  boolean[] blnHideBallStatus = new boolean[20];
   boolean aLeft, dRight;
   int playerX = 200;
   int playerY = 339;
@@ -26,6 +26,12 @@ public class Sketch extends PApplet {
     for (int i = 0; i < circleY.length; i++) {
       circleY[i] = random(height);
     }
+    for (int i = 0; i < circleX.length; i++) {
+      circleX[i] = random(width);
+    }
+    for (int i = 0; i < blnHideBallStatus.length; i++) {
+      blnHideBallStatus[i] = false;
+    }
   }
 
   public void draw() {
@@ -33,33 +39,44 @@ public class Sketch extends PApplet {
     player();
     playerControl();
     drawLives();
+
     // Creates the platform for the block
     noStroke();
     fill(255, 255, 255);
 	  rect(0, 350, 400, 100);
-
+    
     // Loop that creates the snow
     for (int i = 0; i < circleY.length; i++) {
-      circleX[i] = width * i / circleY.length;
-      ellipse(circleX[i], circleY[i], 15, 15);
+      if (!blnHideBallStatus[i]) 
+      ellipse(circleX[i], circleY[i], 20, 20);
+      
   
-      circleY[i]++;
-  
+      circleY[i] += snowSpeed;
+      
       if (circleY[i] > height) {
         circleY[i] = 0;
       }
+      
       if (dist(circleX[i], circleY[i], playerX, playerY) < playerR) {
         playerLives--;
         circleX[i] = random(width);
         circleY[i] = random(-200, 0);
       }
-      // Speeds up snowfall while down arrow is pressed and the inverse
-      if (keyCode == UP && snowSpeed[i] < 10) {
-        snowSpeed[i]++;
-      } else if (keyCode == DOWN && snowSpeed[i] > 1)  {
-        snowSpeed[i]--;
+      if (playerLives == 0) { 
+        circleY[i] = 1;
       }
-      
+      // Speeds up snowfall while down arrow is pressed and the inverse
+      if (keyCode == UP && snowSpeed < 5) {
+        snowSpeed++;
+        circleY[i] += snowSpeed;
+      } else if (keyCode == DOWN && snowSpeed > 1)  {
+        snowSpeed--;
+        circleY[i] -= snowSpeed;
+      }
+      if (blnHideBallStatus[i]) {
+        circleX[i] = -200;
+      }
+    
     }
     
   }
@@ -94,12 +111,34 @@ public class Sketch extends PApplet {
     noFill();
     rect(355, 10, 30, 30);
     } else {
-      
+   if (playerLives <= 0) {
+    background(255);
+    textSize(50);
+    noStroke();
+    fill(150);
+    textAlign(CENTER, CENTER);
+    text("GAME OVER", 200, 200);
+    }
     }
   }
 }
   }
 
+  public void mouseClicked() {
+    float snowX[] = new float[20];
+    float snowY[] = new float[20];
+    for (int i = 0; i < snowX.length; i++) {
+      snowX[i] = circleX[i];
+    }
+    for (int i = 0; i < snowY.length; i++) {
+      snowY[i] = circleY[i];
+    }
+    for (int i = 0; i < snowX.length; i++) {
+      if (dist(mouseX, mouseY, snowX[i], snowY[i]) < 20 ) { 
+        blnHideBallStatus[i] = true;
+      }
+    }
+  }
   public void keyPressed() {
     if (key == 'a') {
       aLeft = true;
